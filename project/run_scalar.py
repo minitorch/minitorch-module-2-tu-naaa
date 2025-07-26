@@ -9,13 +9,20 @@ import minitorch
 
 class Network(minitorch.Module):
     def __init__(self, hidden_layers):
-        super().__init__()
-        raise NotImplementedError("Need to include this file from past assignment.")
+        super().__init__()  # 初始化父类
+        # TODO: Implement for Task 1.5.
+        # 各层的定义
+        self.layer1 = Linear(2, hidden_layers)
+        self.layer2 = Linear(hidden_layers, hidden_layers)
+        self.layer3 = Linear(hidden_layers, 1)
+        # raise NotImplementedError("Need to implement for Task 1.5")
 
     def forward(self, x):
+        # 连接网络各层
+        # 使用激活函数
         middle = [h.relu() for h in self.layer1.forward(x)]
         end = [h.relu() for h in self.layer2.forward(middle)]
-        return self.layer3.forward(end)[0].sigmoid()
+        return self.layer3.forward(end)[0].sigmoid()  # 返回最终输出
 
 
 class Linear(minitorch.Module):
@@ -28,21 +35,34 @@ class Linear(minitorch.Module):
             for j in range(out_size):
                 self.weights[i].append(
                     self.add_parameter(
-                        f"weight_{i}_{j}", minitorch.Scalar(2 * (random.random() - 0.5))
+                        f"weight_{i}_{j}", minitorch.Scalar(2 * (random.random() - 0.5))  # W: in_size × out_size
                     )
                 )
         for j in range(out_size):
             self.bias.append(
                 self.add_parameter(
-                    f"bias_{j}", minitorch.Scalar(2 * (random.random() - 0.5))
+                    f"bias_{j}", minitorch.Scalar(2 * (random.random() - 0.5))  # b: out_size × 1
                 )
             )
 
-    def forward(self, inputs):
-        raise NotImplementedError("Need to include this file from past assignment.")
+    def forward(self, inputs):  #没懂
+        # TODO: Implement for Task 1.5.
+        # y = x W + b
+        # x: 1 × in_size
+        # W: in_size × out_size
+        # b: out_size × 1
+        # y: out_size × 1
+        out = []
+        for j in range(len(self.bias)): 
+            tmp = self.bias[j].value   # self.bias[j]、self.weights[i][j]是一个Parameter(定义在module.py)
+            for i in range(len(inputs)): 
+                tmp += inputs[i] * self.weights[i][j].value
+            out.append(tmp)
+        return out
+        # raise NotImplementedError("Need to implement for Task 1.5")
 
 
-def default_log_fn(epoch, total_loss, correct, losses):
+def default_log_fn(epoch, total_loss, correct, losses):  # 日志
     print("Epoch ", epoch, " loss ", total_loss, "correct", correct)
 
 

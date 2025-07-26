@@ -1,3 +1,4 @@
+[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19982539&assignment_repo_type=AssignmentRepo)
 # MiniTorch Module 2
 
 <img src="https://minitorch.github.io/minitorch.svg" width="50%">
@@ -10,7 +11,7 @@
 This assignment requires the following files from the previous assignments. You can get these by running
 
 ```bash
-python sync_previous_module.py previous-module-dir current-module-dir
+python sync_previous_module.py ../minitorch-module-1-tu-naaa .
 ```
 
 The files that will be synced are:
