@@ -43,6 +43,7 @@ class ScalarHistory:
 
 # ## Task 1.2 and 1.4
 # Scalar Forward and Backward
+# override: 运算符重载
 
 _var_count = 0
 
@@ -92,25 +93,37 @@ class Scalar:
         return Mul.apply(b, Inv.apply(self))
 
     def __add__(self, b: ScalarLike) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Add.apply(self, b)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __bool__(self) -> bool:
         return bool(self.data)
 
     def __lt__(self, b: ScalarLike) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return LT.apply(self, b)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __gt__(self, b: ScalarLike) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return LT.apply(b, self)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __eq__(self, b: ScalarLike) -> Scalar:  # type: ignore[override]
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return EQ.apply(self, b)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __sub__(self, b: ScalarLike) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Add.apply(self, Neg.apply(b))
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __neg__(self) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Neg.apply(self)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __radd__(self, b: ScalarLike) -> Scalar:
         return self + b
@@ -119,20 +132,28 @@ class Scalar:
         return self * b
 
     def log(self) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Log.apply(self)
+        raise NotImplementedError("Need to implement for Task 1.2")
 
     def exp(self) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Exp.apply(self)
+        raise NotImplementedError("Need to implement for Task 1.2")
 
     def sigmoid(self) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return Sigmoid.apply(self)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def relu(self) -> Scalar:
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.2.
+        return ReLU.apply(self)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     # Variable elements for backprop
 
-    def accumulate_derivative(self, x: Any) -> None:
+    def accumulate_derivative(self, x: Any) -> None:  # 把不同路径传过来的梯度相加
         """
         Add `val` to the the derivative accumulated on this variable.
         Should only be called during autodifferentiation on leaf variables.
@@ -140,6 +161,7 @@ class Scalar:
         Args:
             x: value to be accumulated
         """
+        # e.g z = x*y + x*w - dz/dx = d(x*y)/dx + d(x*w)/dx
         assert self.is_leaf(), "Only leaf variables can have derivatives."
         if self.derivative is None:
             self.derivative = 0.0
@@ -157,13 +179,22 @@ class Scalar:
         assert self.history is not None
         return self.history.inputs
 
-    def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
+    def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:  # (x, dL/dx) - dL/dx = dL/dz * dz/dx = d_output * grad_x
         h = self.history
         assert h is not None
         assert h.last_fn is not None
         assert h.ctx is not None
 
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.3.
+        # ._backward函数定义在ScalarFunction类里，把各个function的.backward返回的结果包装成tuple
+        grads = h.last_fn._backward(h.ctx, d_output)  # z=h.last_fn(x1, x2, …) - grads = [dz/dx1, dz/dx2, …]
+        result = []
+        for (x, grad_x) in zip(h.inputs, grads):
+            if x.is_constant():
+                continue
+            result.append((x, grad_x))
+        return result
+        # raise NotImplementedError("Need to implement for Task 1.3")
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """

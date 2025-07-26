@@ -7,7 +7,7 @@ from typing_extensions import Protocol
 # Central Difference calculation
 
 
-def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) -> Any:
+def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) -> Any:  
     r"""
     Computes an approximation to the derivative of `f` with respect to one arg.
 
@@ -22,7 +22,12 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.1.
+    # 求偏导
+    tmp_vals = list(vals)
+    tmp_vals[arg] += epsilon
+    return (f(*tmp_vals)-f(*vals))/epsilon
+    # raise NotImplementedError("Need to implement for Task 1.1")
 
 
 variable_count = 1
@@ -50,7 +55,7 @@ class Variable(Protocol):
         pass
 
 
-def topological_sort(variable: Variable) -> Iterable[Variable]:
+def topological_sort(variable: Variable) -> Iterable[Variable]:  # 计算图 - 有向无环图 -> 拓扑排序
     """
     Computes the topological order of the computation graph.
 
@@ -60,10 +65,24 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    # e.g. b=(x+y)+z, c=(x+y)*w -> [x, y, a=x+y, z, b=a+z, w, c=a*w]
+    vis = set()
+    topo = []
+    def dfs(u: Variable):
+        if u.unique_id in vis or u.is_constant():  # 访问过了/常量
+            return
+        vis.add(u.unique_id)  # 标记vis
+        for v in u.parents:  # 遍历父节点
+            dfs(v)
+        topo.append(u)  # 加入list
+    dfs(variable)
+    topo.reverse()
+    return topo
+    # raise NotImplementedError("Need to implement for Task 1.4")
 
 
-def backpropagate(variable: Variable, deriv: Any) -> None:
+def backpropagate(variable: Variable, deriv: Any) -> None:  # variable=f(x1, x2, …) - deriv = dL / dvariable
     """
     Runs backpropagation on the computation graph in order to
     compute derivatives for the leave nodes.
@@ -74,7 +93,22 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    d = {}  # 相当于cpp里的map - <v.unique_id, deriv>
+    d[variable.unique_id] = deriv  # 初始化variable的导数
+    topo = topological_sort(variable)
+    for u in topo:
+        if u.is_constant() or u.is_leaf():  # 常量/叶子节点不需要计算梯度
+            continue
+        for v, grad_v in u.chain_rule(d[u.unique_id]):
+            if v.unique_id in d:
+                d[v.unique_id] += grad_v  # 累加梯度
+            else:  # v.unique_id第一次出现
+                d[v.unique_id] = grad_v
+    for u in topo:
+        if u.is_leaf():
+            u.accumulate_derivative(d[u.unique_id])
+    #raise NotImplementedError("Need to implement for Task 1.4")
 
 
 @dataclass
