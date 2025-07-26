@@ -99,7 +99,7 @@ particularly,
     
 #### (2) Broadcast
 - Number of dimensions does not match -> add dimensions of size 1 on the **left** side
-- For the same dimension, size does not match -> turn size 1 to size n (view it as be copied n times)
+- For the same dimension, size does not match -> turn size 1 to size n (view it as **be copied** n times)
 
 Examples:
 
