@@ -91,16 +91,26 @@ def broadcast_index(
     removed.
 
     Args:
-        big_index : multidimensional index of bigger tensor
-        big_shape : tensor shape of bigger tensor
-        shape : tensor shape of smaller tensor
-        out_index : multidimensional index of smaller tensor
+        big_index : multidimensional index of bigger tensor  广播后的张量索引
+        big_shape : tensor shape of bigger tensor  广播后的张量形状
+        shape : tensor shape of smaller tensor  原始的张量形状
+        out_index : multidimensional index of smaller tensor  big_index转换过来的小张量的索引
 
     Returns:
         None
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    # (big_shape) = (1, ..., 1, shape)
+        # 新add的维度：没有对应的out_index
+        # 某个维度上被广播了size：out_index[i] = 0
+        # 其他：out_index[i] = big_index[i+offset]
+    offset = len(big_shape) - len(shape)
+    for i in range(len(shape)):
+        if shape[i] < big_shape[i + offset]:
+            out_index[i] = 0 
+        else:
+            out_index[i] = big_index[i + offset]
+    # raise NotImplementedError("Need to implement for Task 2.2")
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -118,7 +128,21 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    if len(shape1) < len(shape2):
+        shape1 = (1,) * (len(shape2) - len(shape1)) + shape1
+    elif len(shape2) < len(shape1):
+        shape2 = (1,) * (len(shape1) - len(shape2)) + shape2
+    out_shape = [0] * len(shape1)
+    for i in range(len(shape1)):
+        if shape1[i] != shape2[i] and shape1[i] != 1 and shape2[i] != 1:
+            raise IndexingError
+            # raise IndexingError(
+            #     f"Cannot broadcast {shape1} and {shape2} at dimension {i}."
+            # )
+        else:
+            out_shape[i] = max(shape1[i], shape2[i])
+    return tuple(out_shape)
+    # raise NotImplementedError("Need to implement for Task 2.2")
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
