@@ -60,6 +60,7 @@ particularly,
 
 
 ### 3 Tensors
+#### (1) Basic
 - shape: ```(x, y, z)```
 
   some tricks: change external view without changing inner storage
@@ -91,9 +92,16 @@ particularly,
     ```storage[s1 * index1 + s2 * index2 + s3 * index3 ... ]```
 
   - stride + shape: we can easily manipulate how we view the same underlying storage
- 
     ```(s1, 1)``` -> row-major, s1 elements/row
     
     ```(1, s2)``` -> col-major, s2 elements/col
 
     
+#### (2) Broadcast
+- Number of dimensions does not match -> add dimensions of size 1 on the **left** side
+- For the same dimension, size does not match -> turn size 1 to size n (view it as be copied n times)
+
+Examples:
+
+<img width="1554" height="228" alt="image" src="https://github.com/user-attachments/assets/c362d931-f7a6-4d5e-b770-263cb51d0420" />
+<img width="1541" height="221" alt="image" src="https://github.com/user-attachments/assets/183e1aa8-ff64-4372-9ecc-07d10132f60c" />
