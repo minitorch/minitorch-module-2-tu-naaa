@@ -391,7 +391,7 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:  # 在第reduce_d
                 else:
                     a_index[i] = 0  # reduce的维度变为0（也可以省略，因为初始化成0了）
 
-            # (2) 内容
+            # (2) data
             # e.g a_(0, y, z)&a_(1, y, z)&...&a_(x-1, y, z) -> out_(0, y, z)
             # 初始化（注意不能是0，比如算累乘的话初值应该是1，所以直接初始化成第一个元素、后边从第二个元素开始遍历比较好）
             a_index[reduce_dim] = 0
