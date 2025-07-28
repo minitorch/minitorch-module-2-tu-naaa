@@ -230,7 +230,7 @@ class SimpleOps(TensorOps):
 # Implementations.
 
 
-def tensor_map(fn: Callable[[float], float]) -> Any:
+def tensor_map(fn: Callable[[float], float]) -> Any:  # 对in_tensor中的每个元素x应用函数fn(x)，结果写入out_tensor对应的位置中
     """
     Low-level implementation of tensor map between
     tensors with *possibly different strides*.
@@ -269,7 +269,18 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        # 对out中的每一个位置(0,0), (0,1), ..., (2,1)等，找到它在input_tensor里应该用哪个位置的值，用fn()变换后写入对应的out_storage
+        out_index = np.zeros(len(out_shape), dtype=np.int32)
+        in_index = np.zeros(len(in_shape), dtype=np.int32)
+        for ordinal in range(np.prod(out_shape)):  # 对于out中每个位置 # np.prod(out_shape) = out.size
+            to_index(ordinal, out_shape, out_index)  # 转换为out_index
+            broadcast_index(out_index, out_shape, in_shape, in_index)  # 转换为in_index
+
+            in_pos = index_to_position(in_index, in_strides)  # 计算出in_pos
+            out_pos = index_to_position(out_index, out_strides)  # 计算出out_pos
+
+            out[out_pos] = fn(in_storage[in_pos])  # x=in_storage[in_index], fn(x)->out[out_pos]
+        # raise NotImplementedError("Need to implement for Task 2.3")
 
     return _map
 
@@ -319,12 +330,25 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index = np.zeros(len(out_shape), dtype=np.int32)
+        a_index = np.zeros(len(a_shape), dtype=np.int32)
+        b_index = np.zeros(len(b_shape), dtype=np.int32)
+        for ordinal in range(np.prod(out_shape)): 
+            to_index(ordinal, out_shape, out_index)  
+            broadcast_index(out_index, out_shape, a_shape, a_index)  
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+
+            a_pos = index_to_position(a_index, a_strides) 
+            b_pos = index_to_position(b_index, b_strides)  
+            out_pos = index_to_position(out_index, out_strides)  
+
+            out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos]) 
+        # raise NotImplementedError("Need to implement for Task 2.3")
 
     return _zip
 
 
-def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
+def tensor_reduce(fn: Callable[[float, float], float]) -> Any:  # 在第reduce_dim个维度上做归约，将结果存入 out 张量中
     """
     Low-level implementation of tensor reduce.
 
@@ -355,7 +379,34 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index = np.zeros(len(out_shape), dtype=np.int32)
+        a_index = np.zeros(len(a_shape), dtype=np.int32)
+        for ordinal in range(np.prod(out_shape)):  
+            to_index(ordinal, out_shape, out_index)  
+            # (1) shape
+            # e.g. (x, y, z) -> (x, 0, z) when reduce_dim=1
+            for i in range(len(out_shape)):
+                if i != reduce_dim:
+                    a_index[i] = out_index[i]  # 其他维度不变
+                else:
+                    a_index[i] = 0  # reduce的维度变为0（也可以省略，因为初始化成0了）
+
+            # (2) 内容
+            # e.g a_(0, y, z)&a_(1, y, z)&...&a_(x-1, y, z) -> out_(0, y, z)
+            # 初始化（注意不能是0，比如算累乘的话初值应该是1，所以直接初始化成第一个元素、后边从第二个元素开始遍历比较好）
+            a_index[reduce_dim] = 0
+            a_pos = index_to_position(a_index, a_strides)
+            now = a_storage[a_pos]
+            # 依次reduce
+            for i in range(1, a_shape[reduce_dim]):  
+                a_index[reduce_dim] = i  # 改index，考察a_(i, y, z)
+                a_pos = index_to_position(a_index, a_strides)  # 转化为对应pos
+                now = fn(now, a_storage[a_pos])
+            # 写入out
+            out_pos = index_to_position(out_index, out_strides)
+            out[out_pos] = now
+
+        # raise NotImplementedError("Need to implement for Task 2.3")
 
     return _reduce
 

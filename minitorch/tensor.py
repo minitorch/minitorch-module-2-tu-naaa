@@ -249,7 +249,7 @@ class Tensor:
         if backend.cuda:  # pragma: no cover
             self._tensor.to_cuda_()
 
-    def _new(self, tensor_data: TensorData) -> Tensor:
+    def _new(self, tensor_data: TensorData) -> Tensor:  # tensordata -> tensor
         return Tensor(tensor_data, backend=self.backend)
 
     @staticmethod
