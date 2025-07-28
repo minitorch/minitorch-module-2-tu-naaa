@@ -105,3 +105,20 @@ Examples:
 
 <img width="1554" height="228" alt="image" src="https://github.com/user-attachments/assets/c362d931-f7a6-4d5e-b770-263cb51d0420" />
 <img width="1541" height="221" alt="image" src="https://github.com/user-attachments/assets/183e1aa8-ff64-4372-9ecc-07d10132f60c" />
+
+#### (3) Operations
+- map: for each element ```x``` -> ```fn(x)``` (independently)
+  
+  <img width="400" height="200" alt="image" src="https://github.com/user-attachments/assets/c95aadca-671c-4d20-b0f0-2456eee0edae" />
+
+- zip
+  
+  <img width="600" height="200" alt="image" src="https://github.com/user-attachments/assets/b36d5fce-a349-40ab-b9d0-6ae436c60662" />
+
+- reduce
+
+  different ```reduce_dim```:
+
+  <img width="400" height="200" alt="image" src="https://github.com/user-attachments/assets/befa4350-3267-41d7-9e17-1903131ec02a" />
+  <img width="400" height="200" alt="image" src="https://github.com/user-attachments/assets/916f9635-8242-48c7-bfb7-31330a906591" />
+
