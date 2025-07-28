@@ -30,7 +30,7 @@ UserShape: TypeAlias = Sequence[int]
 UserStrides: TypeAlias = Sequence[int]
 
 
-def index_to_position(index: Index, strides: Strides) -> int:
+def index_to_position(index: Index, strides: Strides) -> int:  # 根据张量的多维下标index和对应步幅strides，计算在底层一维存储中的位置
     """
     Converts a multidimensional tensor `index` into a single-dimensional position in
     storage based on strides.
@@ -44,7 +44,17 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
 
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # stride[0]: 沿第一个维度(行)走一步，要跳过几个元素
+    # stride[1]: 沿第二个维度(列)走一步，要跳过几个元素
+    # e.g. 形状为(3, 4)的二维张量，按行存储 -> stride是[4, 1]
+    # index: 要访问的元素的下标
+    # e.g. index=(2, 3) -> a[2][3]
+    # return index[0] * strides[0] + index[1] * strides[1]  #only 二维
+    sum = 0
+    for i in range(len(index)):
+        sum += (index[i] * strides[i])
+    return sum
+    # raise NotImplementedError("Need to implement for Task 2.1")
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -61,7 +71,13 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # shape = (x, y, z) -> x块，每个块是y行z列的矩阵
+    # index = (i, j, k)
+    # k = ordinal % z, ordinal //= z; j = ordinal % y, ordinal //= y; i = ordinal
+    for i in range(len(shape)-1, -1, -1):  # 从len(shape)-1到0，倒序遍历
+        out_index[i] = ordinal % shape[i]
+        ordinal //= shape[i]
+    # raise NotImplementedError("Need to implement for Task 2.1")
 
 
 def broadcast_index(
@@ -75,16 +91,26 @@ def broadcast_index(
     removed.
 
     Args:
-        big_index : multidimensional index of bigger tensor
-        big_shape : tensor shape of bigger tensor
-        shape : tensor shape of smaller tensor
-        out_index : multidimensional index of smaller tensor
+        big_index : multidimensional index of bigger tensor  广播后的张量索引
+        big_shape : tensor shape of bigger tensor  广播后的张量形状
+        shape : tensor shape of smaller tensor  原始的张量形状
+        out_index : multidimensional index of smaller tensor  big_index转换过来的小张量的索引
 
     Returns:
         None
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    # (big_shape) = (1, ..., 1, shape)
+        # 新add的维度：没有对应的out_index
+        # 某个维度上被广播了size：out_index[i] = 0
+        # 其他：out_index[i] = big_index[i+offset]
+    offset = len(big_shape) - len(shape)
+    for i in range(len(shape)):
+        if shape[i] < big_shape[i + offset]:
+            out_index[i] = 0 
+        else:
+            out_index[i] = big_index[i + offset]
+    # raise NotImplementedError("Need to implement for Task 2.2")
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -102,7 +128,21 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    if len(shape1) < len(shape2):
+        shape1 = (1,) * (len(shape2) - len(shape1)) + shape1
+    elif len(shape2) < len(shape1):
+        shape2 = (1,) * (len(shape1) - len(shape2)) + shape2
+    out_shape = [0] * len(shape1)
+    for i in range(len(shape1)):
+        if shape1[i] != shape2[i] and shape1[i] != 1 and shape2[i] != 1:
+            raise IndexingError
+            # raise IndexingError(
+            #     f"Cannot broadcast {shape1} and {shape2} at dimension {i}."
+            # )
+        else:
+            out_shape[i] = max(shape1[i], shape2[i])
+    return tuple(out_shape)
+    # raise NotImplementedError("Need to implement for Task 2.2")
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -208,7 +248,7 @@ class TensorData:
     def tuple(self) -> Tuple[Storage, Shape, Strides]:
         return (self._storage, self._shape, self._strides)
 
-    def permute(self, *order: int) -> TensorData:
+    def permute(self, *order: int) -> TensorData:  # 只是重排，不改变物理地址!!!相当于shape[i]和stride[i]绑定，一起permute
         """
         Permute the dimensions of the tensor.
 
@@ -223,7 +263,23 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
+        # e.g. order=(2, 0, 1): 原来的第2维变为第0维，第0维变为第1维，第1维变为第2维
+        tmp_shape = []
+        tmp_strides = []
+        for i, order_i in enumerate(order):
+            tmp_shape.append(self.shape[order_i])
+            tmp_strides.append(self.strides[order_i])
+        return TensorData(self._storage, tuple(tmp_shape), tuple(tmp_strides))
+        # raise NotImplementedError("Need to implement for Task 2.1")
+
+        # storage变化时候的stride重算：
+            # shape = (2, 3, 4) -> stride = (3×4, 4, 1)
+            # (s0, s1, ..., sn-1) -> (sn-1×sn-2×...×s1, ..., sn-1×sn-2, sn-1, 1)
+            # tmp_strides = np.zeros_like(self.strides, dtype=np.int32)
+            # now = 1
+            # for i in range(len(tmp_shape)-1, -1, -1):
+            #     tmp_strides[i] = now
+            #     now *= tmp_shape[i]
 
     def to_string(self) -> str:
         s = ""
